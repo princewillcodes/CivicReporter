@@ -9,9 +9,11 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 const GOOGLE_SHEET_API_URL = "https://script.google.com/macros/s/AKfycbzKfjMQjoXFfb7GG8n5SJtIGw97RTqAltlliMPZsbSnAE5zgjq-bZqG2MsUdIxjjrKV/exec";
 
 // Global State Layout Trackers
-let userCoords = null;
-let activeMarker = null;
-let localMediaStream = null;
+let userCoords = null;        // Holds the active verified telemetry location
+let activeMarker = null;      // Temporary pinpoint anchor for reporting
+let localMediaStream = null;  // Video hardware control hook
+let userLocationCursor = null;// Persistent live blue user cursor on the map
+let hasCenteredInitial = false; // Tracks if the map has zoomed to user once already
 
 // DOM Layout View Selectors
 const navItems = document.querySelectorAll('.nav-item');
@@ -49,7 +51,13 @@ navItems.forEach(item => {
         document.getElementById(targetScreen).classList.remove('hidden');
 
         if (targetScreen === 'screen-map') {
-            setTimeout(() => { map.invalidateSize(); }, 50);
+            setTimeout(() => { 
+                map.invalidateSize(); 
+                // Whenever they switch to the map tab, smoothly slide over to where they are standing
+                if (userCoords) {
+                    map.panTo(userCoords);
+                }
+            }, 50);
         }
     });
 });
@@ -57,7 +65,12 @@ navItems.forEach(item => {
 // Launch Report Workflow
 const triggerReportWorkflow = () => {
     reportModal.classList.remove('hidden');
-    fetchLocation();
+    // Set the prompt status immediately to reflect the background watcher's active state
+    if (userCoords) {
+        gpsStatus.textContent = `Grid lock: ${userCoords[0].toFixed(4)}, ${userCoords[1].toFixed(4)}`;
+    } else {
+        gpsStatus.textContent = "Awaiting steady hardware GPS coordinate locks...";
+    }
 };
 
 reportBtn.addEventListener('click', triggerReportWorkflow);
@@ -73,10 +86,67 @@ closeModalBtn.addEventListener('click', () => {
     }
 });
 
-// FEATURE 1: HARDWARE NATIVE CAMERA INITIALIZATION SYSTEM
+// FEATURE 1: NATIVE BACKGROUND LIVE LOCATION TRACKING WATCHER
+function initLiveLocationWatcher() {
+    if (!navigator.geolocation) {
+        console.error("Hardware telemetry streams missing from browser context.");
+        return;
+    }
+
+    // Custom CSS-animated diving icon for the live user cursor
+    const liveCursorIcon = L.divIcon({
+        className: 'user-location-dot',
+        html: `<div class="radar-ring"></div><div class="core-dot"></div>`,
+        iconSize: [32, 32],
+        iconAnchor: [16, 16]
+    });
+
+    // Fire off the background hardware watcher stream
+    navigator.geolocation.watchPosition(
+        (position) => {
+            const { latitude, longitude } = position.coords;
+            userCoords = [latitude, longitude];
+
+            console.log(`Hardware GPS Vector update: ${latitude}, ${longitude}`);
+
+            // If the user location cursor doesn't exist yet, construct it and paint it onto the layout
+            if (!userLocationCursor) {
+                userLocationCursor = L.marker(userCoords, { icon: liveCursorIcon }).addTo(map);
+                userLocationCursor.bindPopup("<b>You are here</b><br>Tracking your live position.").openPopup();
+            } else {
+                // Otherwise, move the existing blue dot smoothly to the new coordinates
+                userLocationCursor.setLatLng(userCoords);
+            }
+
+            // Only snap the camera lens view over the user automatically on their very first connection check
+            if (!hasCenteredInitial) {
+                map.setView(userCoords, 16);
+                hasCenteredInitial = true;
+            }
+
+            // Keep form input text components accurately updated in the background
+            if (reportModal.classList.contains('hidden') === false) {
+                gpsStatus.textContent = `Grid lock: ${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
+            }
+        },
+        (error) => {
+            console.error("Background tracking hardware exception:", error);
+        },
+        {
+            enableHighAccuracy: true, // Demands true high-precision smartphone GPS receivers instead of cell-tower approximations
+            maximumAge: 0,            // Prevents caching positions; guarantees absolute live telemetry feedback loops
+            timeout: 10000            // Limits latency delays to a max threshold of 10s
+        }
+    );
+}
+
+// Start tracking their location immediately as soon as the app engine fires up!
+initLiveLocationWatcher();
+
+
+// FEATURE 2: HARDWARE NATIVE CAMERA INITIALIZATION SYSTEM
 startCamBtn.addEventListener('click', async () => {
     try {
-        // Request access to video capture hardware devices (facing environment preferred for phones)
         localMediaStream = await navigator.mediaDevices.getUserMedia({
             video: { facingMode: "environment" },
             audio: false
@@ -93,16 +163,12 @@ startCamBtn.addEventListener('click', async () => {
     }
 });
 
-// Capture Canvas Frame Snapshot Matrix
 snapPhotoBtn.addEventListener('click', () => {
     const context = captureCanvas.getContext('2d');
     captureCanvas.width = videoFeed.videoWidth;
     captureCanvas.height = videoFeed.videoHeight;
     
-    // Write image frame matrix coordinates directly to context canvas matrix
     context.drawImage(videoFeed, 0, 0, captureCanvas.width, captureCanvas.height);
-    
-    // Export raw pixel context matrix data into Base64 web data rendering URL string
     const base64DataUrl = captureCanvas.toDataURL('image/jpeg');
     
     imagePreview.src = base64DataUrl;
@@ -120,31 +186,6 @@ function stopCameraHardware() {
     startCamBtn.classList.remove('hidden');
 }
 
-// Hardware Precision Telemetry GPS Interceptor 
-function fetchLocation() {
-    if (!navigator.geolocation) {
-        gpsStatus.textContent = "Hardware GPS mapping unavailable.";
-        return;
-    }
-    gpsStatus.textContent = "Locking onto regional telemetry grid...";
-    navigator.geolocation.getCurrentPosition(
-        (position) => {
-            const { latitude, longitude } = position.coords;
-            userCoords = [latitude, longitude];
-            gpsStatus.textContent = `Grid lock: ${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
-            map.setView(userCoords, 16);
-            activeMarker = L.marker(userCoords).addTo(map);
-        },
-                (error) => { 
-            gpsStatus.textContent = "GPS Timeout. Using default Accra coordinates."; 
-            userCoords = [5.6506, -0.1870]; // Fallback coordinates so you can still submit!
-            map.setView(userCoords, 16);
-            activeMarker = L.marker(userCoords).addTo(map);
-        },
-        { enableHighAccuracy: true }
-    );
-}
-
 function detectSubMetroDistrict(coords) {
     if (!coords) return "Accra Metropolitan Assembly";
     const lat = coords[0]; const lng = coords[1];
@@ -153,24 +194,23 @@ function detectSubMetroDistrict(coords) {
     return "Accra Metropolitan Assembly (AMA)";
 }
 
-// FEATURE 2: PACKAGING HAUL AND SHIPPING PAYLOAD OVER TO GOOGLE SHEETS
+// FEATURE 3: PACKAGING HAUL AND SHIPPING PAYLOAD OVER TO GOOGLE SHEETS
 issueForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     
     const issueType = document.getElementById('issue-type').value;
     const urgency = urgencyInput.value;
     const description = document.getElementById('issue-desc').value;
-    const base64ImageString = imagePreview.src; // Holds data matrix frame URL string 
+    const base64ImageString = imagePreview.src;
 
     if (!userCoords) {
-        alert("Awaiting valid coordinates before packaging payload.");
+        alert("Still waiting on a clear hardware GPS coordinate lock from your device.");
         return;
     }
 
     const targetedDistrict = detectSubMetroDistrict(userCoords);
     const uniqueReportId = `GH-${Math.floor(1000 + Math.random() * 9000)}`;
 
-    // Prepare JSON payload object matching Google Sheet headers structural expectations
     const payload = {
         action: "addReport",
         id: uniqueReportId,
@@ -181,17 +221,15 @@ issueForm.addEventListener('submit', async (e) => {
         coordinates: `${userCoords[0]},${userCoords[1]}`
     };
 
-    // Plot immediate UI placeholder pin onto interface map locally first for fluidity
     plotLocalMarker(userCoords, issueType, urgency, targetedDistrict, description, base64ImageString, uniqueReportId);
     
     reportModal.classList.add('hidden');
     document.querySelector('[data-screen="screen-map"]').click();
 
-    // Fire asynchronous payload dispatch stream off to Google Deployment Script endpoint
     try {
         await fetch(GOOGLE_SHEET_API_URL, {
             method: "POST",
-            mode: "no-cors", // Bypasses browser cross-origin policy complications smoothly
+            mode: "no-cors",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload)
         });
@@ -200,11 +238,9 @@ issueForm.addEventListener('submit', async (e) => {
         console.error("Disruption in central Sheet data pipe:", error);
     }
 
-    // Clean form elements fields
     issueForm.reset();
     imagePreview.src = "";
     imagePreview.classList.add('hidden');
-    userCoords = null;
 });
 
 function plotLocalMarker(coords, type, urgency, district, desc, img, id) {
@@ -232,7 +268,7 @@ function plotLocalMarker(coords, type, urgency, district, desc, img, id) {
     `).openPopup();
 }
 
-// FEATURE 3: LOCAL INTERACTIVE NEIGHBORHOOD COMMUNITY WIRE CHAT CONTEXT
+// FEATURE 4: LOCAL INTERACTIVE NEIGHBORHOOD COMMUNITY WIRE CHAT CONTEXT
 chatForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     
@@ -241,7 +277,6 @@ chatForm.addEventListener('submit', async (e) => {
     
     if(!userValue || !messageValue) return;
 
-    // Append output message container instantly layout template locally
     const bubbleElement = document.createElement('div');
     bubbleElement.classList.add('chat-bubble', 'me');
     bubbleElement.innerHTML = `
@@ -257,7 +292,6 @@ chatForm.addEventListener('submit', async (e) => {
         message: messageValue
     };
 
-    // Fire chat message transaction to Sheet deployment router
     try {
         await fetch(GOOGLE_SHEET_API_URL, {
             method: "POST",
