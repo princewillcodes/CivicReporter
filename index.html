@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Civic Reporter Ghana</title>
+    
+    <!-- Leaflet Map CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- APP HEADER -->
+    <header class="app-header">
+        <h2>CivicReporter<span>.gh</span></h2>
+        <div class="status-badge">Accra Live</div>
+    </header>
+
+    <!-- MAIN APP CONTAINER FOR ACTIVE SCREENS -->
+    <main class="app-container">
+
+        <!-- SCREEN 1: HOME DASHBOARD -->
+        <section id="screen-home" class="app-screen">
+            <div class="welcome-card">
+                <h1>Welcome Back, Citizen</h1>
+                <p>Report structural hazards and track accountability across your municipal assembly in real-time.</p>
+                <button class="action-trigger-btn" id="shortcut-report-btn">🚨 File New Community Report</button>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <h3>412</h3>
+                    <p>Total Reports</p>
+                </div>
+                <div class="stat-box resolution">
+                    <h3>68%</h3>
+                    <p>Fixed by Assemblies</p>
+                </div>
+            </div>
+
+            <div class="section-title">
+                <h3>Active Municipal Hotspots</h3>
+            </div>
+            
+            <div class="hotspot-list">
+                <div class="hotspot-item">
+                    <span class="hotspot-tag high">High Risk</span>
+                    <h4>Osu Klottey Sub-Metro</h4>
+                    <p>14 active primary drain blockages flagged this week.</p>
+                </div>
+                <div class="hotspot-item">
+                    <span class="hotspot-tag medium">Warning</span>
+                    <h4>Ayawaso West</h4>
+                    <p>Road deterioration and major potholes near bypass loops.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- SCREEN 2: IMMERSIVE MAP SCREEN -->
+        <section id="screen-map" class="app-screen hidden">
+            <div id="map"></div>
+            <!-- Floating Action Button inside map view -->
+            <button id="report-btn" class="fab">+</button>
+        </section>
+
+        <!-- SCREEN 3: ANALYTICS FEED -->
+        <section id="screen-analytics" class="app-screen hidden">
+            <div class="welcome-card data-card">
+                <h2>Assembly Performance Leaderboard</h2>
+                <p>Data metrics tracking average resolution times for flagged infrastructure updates.</p>
+            </div>
+            
+            <div class="leaderboard-table-wrapper">
+                <table class="leaderboard-table">
+                    <thead>
+                        <tr>
+                            <th>District Assembly</th>
+                            <th>Reports</th>
+                            <th>Avg Fix Time</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Ayawaso West Municipal</td>
+                            <td>84</td>
+                            <td class="good-stat">4 Days</td>
+                        </tr>
+                        <tr>
+                            <td>Accra Metropolitan (AMA)</td>
+                            <td>192</td>
+                            <td class="warn-stat">12 Days</td>
+                        </tr>
+                        <tr>
+                            <td>Ledzokuku Municipal</td>
+                            <td>56</td>
+                            <td class="bad-stat">21 Days</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- SCREEN 4: COMMUNITY GROUP CHAT FEED -->
+        <section id="screen-community" class="app-screen hidden">
+            <div class="chat-wrapper">
+                <div class="chat-header">
+                    <h4>💬 Public Neighborhood Wire</h4>
+                    <p>Discuss local flooding, blockages, or organize cleanups.</p>
+                </div>
+                
+                <!-- Active Message Feed Container -->
+                <div id="chat-messages-container" class="chat-messages">
+                    <div class="chat-bubble system">
+                        <p>Welcome to the Accra Civic wire. Keep messages brief and civil.</p>
+                    </div>
+                </div>
+
+                <!-- Message Submittal Input Field Dock -->
+                <form id="chat-input-form" class="chat-input-bar">
+                    <input type="text" id="chat-username" placeholder="Name" required style="width: 25%;">
+                    <input type="text" id="chat-message-body" placeholder="Type a message..." required style="width: 60%;">
+                    <button type="submit" class="chat-send-btn" style="width: 15%;">➔</button>
+                </form>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- SLIDE-UP REPORT FORM MODAL SHEET -->
+    <div id="report-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Report Infrastructure Hazard</h3>
+                <button id="close-modal-btn" class="close-btn">&times;</button>
+            </div>
+            
+            <form id="issue-form">
+                <label for="issue-type">Select Hazard Type</label>
+                <select id="issue-type" required>
+                    <option value="">Choose item...</option>
+                    <option value="clogged_drain">🚨 Clogged Gutter / Drain</option>
+                    <option value="pothole">🕳️ Pothole</option>
+                    <option value="broken_pipe">💧 Burst Water Pipe</option>
+                    <option value="street_light">💡 Broken Streetlight</option>
+                </select>
+
+                <label for="urgency-level">Urgency Priority</label>
+                <select id="urgency-level" required>
+                    <option value="low">🟢 Low (Routine Maintenance)</option>
+                    <option value="medium">🟡 Medium (Disrupting Flow/Traffic)</option>
+                    <option value="high">🔴 High (Immediate Flood Risk / Hazard)</option>
+                </select>
+
+                <!-- CAMERA VIEWPORT AND CAPTURE -->
+                <label>Evidence Capture</label>
+                <div class="camera-system-box">
+                    <video id="camera-feed" autoplay playsinline class="hidden"></video>
+                    <canvas id="captured-canvas-frame" class="hidden"></canvas>
+                    <img id="image-preview" src="" alt="Preview" class="hidden">
+                    
+                    <div class="camera-controls">
+                        <button type="button" id="start-camera-btn" class="cam-btn utility">🎥 Open Camera</button>
+                        <button type="button" id="snap-photo-btn" class="cam-btn alert hidden">📸 Snap Photo</button>
+                    </div>
+                </div>
+
+                <label for="issue-desc">Additional Details & Landmarks</label>
+                <textarea id="issue-desc" placeholder="e.g. Right opposite the station container..." rows="3"></textarea>
+
+                <p class="location-status" id="gps-status">Awaiting GPS Target initialization...</p>
+
+                <button type="submit" class="submit-btn">Publish Public Report</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- BOTTOM APP NAVIGATION BAR -->
+    <nav class="app-nav-bar">
+        <button class="nav-item active" data-screen="screen-home">
+            <span class="nav-icon">🏠</span>
+            <span class="nav-label">Home</span>
+        </button>
+        <button class="nav-item" data-screen="screen-map">
+            <span class="nav-icon">🗺️</span>
+            <span class="nav-label">Live Map</span>
+        </button>
+        <button class="nav-item" data-screen="screen-analytics">
+            <span class="nav-icon">📊</span>
+            <span class="nav-label">Insights</span>
+        </button>
+        <button class="nav-item" data-screen="screen-community">
+            <span class="nav-icon">💬</span>
+            <span class="nav-label">Wire</span>
+        </button>
+    </nav>
+
+    <!-- Leaflet Map JS Engine -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
