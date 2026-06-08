@@ -874,11 +874,13 @@ select, input, textarea {
 
 /* LIVE GPS PULSING BLUE CURSOR */
 .user-location-dot {
-    background: none;
+background: none;
     border: none;
     display: flex;
     justify-content: center;
     align-items: center;
+    z-index: 99999 !important; 
+    transition: transform 0.4s cubic-bezier(0.1, 0.76, 0.55, 0.94);
 }
 
 .core-dot {
