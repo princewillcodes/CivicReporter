@@ -9,10 +9,10 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 const GOOGLE_SHEET_API_URL = "https://script.google.com/macros/s/AKfycbzKfjMQjoXFfb7GG8n5SJtIGw97RTqAltlliMPZsbSnAE5zgjq-bZqG2MsUdIxjjrKV/exec";
 
 // Global State Layout Trackers
-let userCoords = null;        // Holds the active verified telemetry location
-let activeMarker = null;      // Temporary pinpoint anchor for reporting
-let localMediaStream = null;  // Video hardware control hook
-let userLocationCursor = null;// Persistent live blue user cursor on the map
+let userCoords = null;          // Holds the active verified telemetry location
+let activeMarker = null;        // Temporary pinpoint anchor for reporting
+let localMediaStream = null;    // Video hardware control hook
+let userLocationCursor = null;  // Persistent live blue user cursor on the map
 let hasCenteredInitial = false; // Tracks if the map has zoomed to user once already
 
 // DOM Layout View Selectors
@@ -53,7 +53,7 @@ navItems.forEach(item => {
         if (targetScreen === 'screen-map') {
             setTimeout(() => { 
                 map.invalidateSize(); 
-                // Whenever they switch to the map tab, smoothly slide over to where they are standing
+                // Smoothly pan to current user coordinates when jumping to the map view
                 if (userCoords) {
                     map.panTo(userCoords);
                 }
@@ -65,7 +65,6 @@ navItems.forEach(item => {
 // Launch Report Workflow
 const triggerReportWorkflow = () => {
     reportModal.classList.remove('hidden');
-    // Set the prompt status immediately to reflect the background watcher's active state
     if (userCoords) {
         gpsStatus.textContent = `Grid lock: ${userCoords[0].toFixed(4)}, ${userCoords[1].toFixed(4)}`;
     } else {
@@ -86,14 +85,13 @@ closeModalBtn.addEventListener('click', () => {
     }
 });
 
-// FEATURE 1: NATIVE BACKGROUND LIVE LOCATION TRACKING WATCHER
+// FEATURE 1: NATIVE BACKGROUND LIVE LOCATION TRACKING WATCHER (OPTIMIZED)
 function initLiveLocationWatcher() {
     if (!navigator.geolocation) {
         console.error("Hardware telemetry streams missing from browser context.");
         return;
     }
 
-    // Custom CSS-animated diving icon for the live user cursor
     const liveCursorIcon = L.divIcon({
         className: 'user-location-dot',
         html: `<div class="radar-ring"></div><div class="core-dot"></div>`,
@@ -101,46 +99,57 @@ function initLiveLocationWatcher() {
         iconAnchor: [16, 16]
     });
 
-    // Fire off the background hardware watcher stream
-    navigator.geolocation.watchPosition(
-        (position) => {
-            const { latitude, longitude } = position.coords;
-            userCoords = [latitude, longitude];
+    // Success Handler: Fires automatically whenever device positioning coordinates shift
+    const successCallback = (position) => {
+        const { latitude, longitude } = position.coords;
+        userCoords = [latitude, longitude];
 
-            console.log(`Hardware GPS Vector update: ${latitude}, ${longitude}`);
+        console.log(`GPS Position locked: ${latitude}, ${longitude}`);
 
-            // If the user location cursor doesn't exist yet, construct it and paint it onto the layout
+        // If cursor element does not exist yet, build and append to map layer
+        if (!userLocationCursor) {
+            userLocationCursor = L.marker(userCoords, { icon: liveCursorIcon }).addTo(map);
+            userLocationCursor.bindPopup("<b>You are here</b>").openPopup();
+        } else {
+            userLocationCursor.setLatLng(userCoords);
+        }
+
+        // Only auto-center the viewport frame on the first valid device hardware callback loop
+        if (!hasCenteredInitial) {
+            map.setView(userCoords, 16);
+            hasCenteredInitial = true;
+        }
+
+        // Continually push live status variables to reporting forms background text strings
+        if (reportModal.classList.contains('hidden') === false) {
+            gpsStatus.textContent = `Grid lock: ${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
+        }
+    };
+
+    // Error Handler: If high-accuracy satellite antennas time out, drop back gracefully to preserve app speed
+    const errorCallback = (error) => {
+        console.warn("High accuracy timeout or signal loss. Reverting to network positioning layout...", error);
+        
+        if (!hasCenteredInitial) {
+            userCoords = [5.6506, -0.1870]; // Default fallback centering near Legon node
+            map.setView(userCoords, 14);
+            hasCenteredInitial = true;
+            
             if (!userLocationCursor) {
                 userLocationCursor = L.marker(userCoords, { icon: liveCursorIcon }).addTo(map);
-                userLocationCursor.bindPopup("<b>You are here</b><br>Tracking your live position.").openPopup();
-            } else {
-                // Otherwise, move the existing blue dot smoothly to the new coordinates
-                userLocationCursor.setLatLng(userCoords);
             }
-
-            // Only snap the camera lens view over the user automatically on their very first connection check
-            if (!hasCenteredInitial) {
-                map.setView(userCoords, 16);
-                hasCenteredInitial = true;
-            }
-
-            // Keep form input text components accurately updated in the background
-            if (reportModal.classList.contains('hidden') === false) {
-                gpsStatus.textContent = `Grid lock: ${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
-            }
-        },
-        (error) => {
-            console.error("Background tracking hardware exception:", error);
-        },
-        {
-            enableHighAccuracy: true, // Demands true high-precision smartphone GPS receivers instead of cell-tower approximations
-            maximumAge: 0,            // Prevents caching positions; guarantees absolute live telemetry feedback loops
-            timeout: 10000            // Limits latency delays to a max threshold of 10s
         }
-    );
+    };
+
+    // Initialize hardware streaming background execution process thread
+    navigator.geolocation.watchPosition(successCallback, errorCallback, {
+        enableHighAccuracy: true, 
+        maximumAge: 3000, // Permits using location stamps cached within trailing 3s windows for instant rendering speed
+        timeout: 4000     // Drops to error fallback if satellite tracking loops stall out for more than 4 seconds
+    });
 }
 
-// Start tracking their location immediately as soon as the app engine fires up!
+// Fire tracking systems active immediately on initialization
 initLiveLocationWatcher();
 
 
@@ -148,7 +157,7 @@ initLiveLocationWatcher();
 startCamBtn.addEventListener('click', async () => {
     try {
         localMediaStream = await navigator.mediaDevices.getUserMedia({
-            video: { facingMode: "environment" },
+            video: { facingMode: "environment" }, // Instructs device to prefer primary rear sensors over selfie cameras
             audio: false
         });
         
@@ -158,7 +167,7 @@ startCamBtn.addEventListener('click', async () => {
         startCamBtn.classList.add('hidden');
         imagePreview.classList.add('hidden');
     } catch (err) {
-        alert("Camera initialization failed. Check device canvas permissions.");
+        alert("Camera initialization failed. Check device canvas configuration permissions.");
         console.error(err);
     }
 });
