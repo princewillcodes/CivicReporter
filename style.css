@@ -871,3 +871,44 @@ select, input, textarea {
 .nav-icon { font-size: 20px; }
 .nav-label { font-size: 11px; font-weight: 600; }
 .nav-item.active { color: #00875a; }
+
+/* LIVE GPS PULSING BLUE CURSOR */
+.user-location-dot {
+    background: none;
+    border: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.core-dot {
+    width: 14px;
+    height: 14px;
+    background-color: #007aff; /* Apple/Google map system blue */
+    border: 3px solid white;
+    border-radius: 50%;
+    box-shadow: 0 0 6px rgba(0, 122, 255, 0.6);
+    z-index: 5000;
+}
+
+.radar-ring {
+    position: absolute;
+    width: 32px;
+    height: 32px;
+    background-color: rgba(0, 122, 255, 0.25);
+    border: 1px solid rgba(0, 122, 255, 0.5);
+    border-radius: 50%;
+    animation: pulseRadar 1.8s infinite ease-out;
+    z-index: 4999;
+}
+
+@keyframes pulseRadar {
+    0% {
+        transform: scale(0.4);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(1.6);
+        opacity: 0;
+    }
+}
