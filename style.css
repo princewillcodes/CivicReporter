@@ -15,7 +15,6 @@ body, html {
     flex-direction: column;
 }
 
-/* APP HEADER STYLES */
 .app-header {
     background-color: white;
     padding: 16px 20px;
@@ -48,12 +47,11 @@ body, html {
     text-transform: uppercase;
 }
 
-/* MAIN CONTAINERS */
 .app-container {
     flex: 1;
     overflow-y: auto;
     padding: 20px;
-    padding-bottom: 90px; /* Accounts for floating navbar footprint */
+    padding-bottom: 90px;
     position: relative;
 }
 
@@ -73,7 +71,6 @@ body, html {
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* DASHBOARD CARDS */
 .welcome-card {
     background: linear-gradient(135deg, #00875a 0%, #005c3e 100%);
     color: white;
@@ -108,7 +105,6 @@ body, html {
     box-shadow: 0 2px 6px rgba(0,0,0,0.06);
 }
 
-/* ANALYTICS STATS GRID */
 .stats-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -146,7 +142,6 @@ body, html {
     letter-spacing: 0.5px;
 }
 
-/* HOTSPOT LIST */
 .hotspot-list {
     display: flex;
     flex-direction: column;
@@ -185,7 +180,6 @@ body, html {
     line-height: 1.4;
 }
 
-/* IMMERSIVE MAP FRAME */
 #map {
     position: absolute;
     top: 0;
@@ -195,14 +189,13 @@ body, html {
     z-index: 1;
 }
 
-/* FLOATING ACTION BUTTON OVER MAP */
 .fab {
     position: absolute;
     bottom: 30px;
     right: 20px;
     width: 56px;
     height: 56px;
-    background-color: #e74c3c; /* Red hot color specifically inside the live mapping viewport */
+    background-color: #e74c3c;
     color: white;
     border: none;
     border-radius: 50%;
@@ -213,7 +206,6 @@ body, html {
     z-index: 1000;
 }
 
-/* PERFORMANCE DATATABLE */
 .data-card {
     background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
 }
@@ -249,7 +241,7 @@ body, html {
 .warn-stat { color: #d97706; font-weight: 700; }
 .bad-stat { color: #dc2626; font-weight: 700; }
 
-/* MODAL INTERFACES */
+
 .modal {
     position: fixed;
     bottom: 0;
@@ -335,7 +327,6 @@ select, input, textarea {
     margin-top: 6px;
 }
 
-/* NATIVE LOOKING TAB NAVIGATION BAR */
 .app-nav-bar {
     position: fixed;
     bottom: 0;
@@ -348,7 +339,7 @@ select, input, textarea {
     justify-content: space-around;
     align-items: center;
     z-index: 3500;
-    padding-bottom: env(safe-area-inset-bottom); /* iOS support */
+    padding-bottom: env(safe-area-inset-bottom);
 }
 
 .nav-item {
@@ -394,7 +385,6 @@ body, html {
     flex-direction: column;
 }
 
-/* APP HEADER STYLES */
 .app-header {
     background-color: white;
     padding: 16px 20px;
@@ -427,7 +417,6 @@ body, html {
     text-transform: uppercase;
 }
 
-/* MAIN CONTAINERS */
 .app-container {
     flex: 1;
     overflow-y: auto;
@@ -452,7 +441,6 @@ body, html {
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* DASHBOARD CARDS */
 .welcome-card {
     background: linear-gradient(135deg, #00875a 0%, #005c3e 100%);
     color: white;
@@ -487,7 +475,6 @@ body, html {
     box-shadow: 0 2px 6px rgba(0,0,0,0.06);
 }
 
-/* ANALYTICS STATS GRID */
 .stats-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -525,7 +512,6 @@ body, html {
     letter-spacing: 0.5px;
 }
 
-/* HOTSPOT LIST */
 .hotspot-list {
     display: flex;
     flex-direction: column;
@@ -564,7 +550,6 @@ body, html {
     line-height: 1.4;
 }
 
-/* IMMERSIVE MAP FRAME */
 #map {
     position: absolute;
     top: 0;
@@ -591,7 +576,6 @@ body, html {
     z-index: 1000;
 }
 
-/* PERFORMANCE DATATABLE */
 .data-card {
     background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
 }
@@ -627,7 +611,6 @@ body, html {
 .warn-stat { color: #d97706; font-weight: 700; }
 .bad-stat { color: #dc2626; font-weight: 700; }
 
-/* COMMUNITY WIRE CHAT SYSTEM LAYER */
 .chat-wrapper {
     display: flex;
     flex-direction: column;
@@ -709,7 +692,6 @@ body, html {
     cursor: pointer;
 }
 
-/* HARDWARE CAMERA UI OBJECTIVES */
 .camera-system-box {
     background-color: #f1f5f9;
     border: 2px dashed #cbd5e1;
@@ -753,7 +735,6 @@ body, html {
 
 .hidden { display: none !important; }
 
-/* MODAL INTERFACES */
 .modal {
     position: fixed;
     bottom: 0;
@@ -839,7 +820,6 @@ select, input, textarea {
     margin-top: 6px;
 }
 
-/* NAVIGATION */
 .app-nav-bar {
     position: fixed;
     bottom: 0;
@@ -872,7 +852,7 @@ select, input, textarea {
 .nav-label { font-size: 11px; font-weight: 600; }
 .nav-item.active { color: #00875a; }
 
-/* LIVE GPS PULSING BLUE CURSOR */
+
 .user-location-dot {
 background: none;
     border: none;
@@ -886,7 +866,7 @@ background: none;
 .core-dot {
     width: 14px;
     height: 14px;
-    background-color: #007aff; /* Apple/Google map system blue */
+    background-color: #007aff;
     border: 3px solid white;
     border-radius: 50%;
     box-shadow: 0 0 6px rgba(0, 122, 255, 0.6);
@@ -913,4 +893,65 @@ background: none;
         transform: scale(1.6);
         opacity: 0;
     }
+}
+
+.hotspot-summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+}
+
+.hidden-panel {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1), margin-top 0.3s ease;
+    opacity: 0;
+    transition: opacity 0.2s ease, max-height 0.3s ease;
+}
+
+.hotspot-item.expanded .hidden-panel {
+    max-height: 120px;
+    margin-top: 12px;
+    opacity: 1;
+}
+
+.focus-region-btn {
+    background-color: #f1f5f9;
+    color: #334155;
+    border: 1px solid #cbd5e1;
+    padding: 6px 12px;
+    font-size: 11px;
+    font-weight: 700;
+    border-radius: 6px;
+    margin-top: 8px;
+    cursor: pointer;
+    width: 100%;
+    text-transform: uppercase;
+}
+
+.focus-region-btn:active {
+    background-color: #e2e8f0;
+}
+
+
+.good-stat {
+    color: #00875a !important;
+    background-color: #e6f4ea;
+    border-radius: 4px;
+    padding: 4px 8px;
+}
+
+.warn-stat {
+    color: #b58105 !important;
+    background-color: #fef7e0;
+    border-radius: 4px;
+    padding: 4px 8px;
+}
+
+.bad-stat {
+    color: #e74c3c !important;
+    background-color: #fce8e6;
+    border-radius: 4px;
+    padding: 4px 8px;
 }
