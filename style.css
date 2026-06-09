@@ -582,3 +582,33 @@ select, input, textarea {
 .focus-region-btn:active {
     background-color: #e2e8f0;
 }
+
+.toast {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(0);
+    background-color: #00875a;
+    color: white;
+    padding: 14px 24px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 700;
+    box-shadow: 0 8px 24px rgba(0, 135, 90, 0.25);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.2s ease;
+    opacity: 1;
+    pointer-events: none;
+    width: 90%;
+    max-width: 340px;
+    text-align: center;
+    justify-content: center;
+}
+
+.toast.hidden-toast {
+    transform: translateX(-50%) translateY(-100px);
+    opacity: 0;
+}
