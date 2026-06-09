@@ -5,22 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Civic Reporter Ghana</title>
     
-    <!-- Leaflet Map CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
+
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <!-- APP HEADER -->
     <header class="app-header">
         <h2>CivicReporter<span>.gh</span></h2>
-        <div class="status-badge">Accra Live</div>
+        <div class="status-badge">Ghana Live</div>
     </header>
 
-    <!-- MAIN APP CONTAINER FOR ACTIVE SCREENS -->
     <main class="app-container">
 
-        <!-- SCREEN 1: HOME DASHBOARD -->
         <section id="screen-home" class="app-screen">
             <div class="welcome-card">
                 <h1>Welcome Back, Citizen</h1>
@@ -30,11 +29,11 @@
 
             <div class="stats-grid">
                 <div class="stat-box">
-                    <h3>412</h3>
-                    <p>Total Reports</p>
+                    <h3 id="stat-total-reports">--</h3>
+                    <p>Total Reports Logged</p>
                 </div>
                 <div class="stat-box resolution">
-                    <h3>68%</h3>
+                    <h3 id="stat-resolution-rate">--%</h3>
                     <p>Fixed by Assemblies</p>
                 </div>
             </div>
@@ -43,28 +42,18 @@
                 <h3>Active Municipal Hotspots</h3>
             </div>
             
-            <div class="hotspot-list">
-                <div class="hotspot-item">
-                    <span class="hotspot-tag high">High Risk</span>
-                    <h4>Osu Klottey Sub-Metro</h4>
-                    <p>14 active primary drain blockages flagged this week.</p>
-                </div>
-                <div class="hotspot-item">
-                    <span class="hotspot-tag medium">Warning</span>
-                    <h4>Ayawaso West</h4>
-                    <p>Road deterioration and major potholes near bypass loops.</p>
+            <div class="hotspot-list" id="dynamic-hotspot-container">
+                <div style="text-align: center; color: #64748b; padding: 20px; font-weight: 500; font-size: 14px;">
+                    ⏳ Streaming local hotspot telemetry...
                 </div>
             </div>
         </section>
 
-        <!-- SCREEN 2: IMMERSIVE MAP SCREEN -->
         <section id="screen-map" class="app-screen hidden">
             <div id="map"></div>
-            <!-- Floating Action Button inside map view -->
             <button id="report-btn" class="fab">+</button>
         </section>
 
-        <!-- SCREEN 3: ANALYTICS FEED -->
         <section id="screen-analytics" class="app-screen hidden">
             <div class="welcome-card data-card">
                 <h2>Assembly Performance Leaderboard</h2>
@@ -77,46 +66,33 @@
                         <tr>
                             <th>District Assembly</th>
                             <th>Reports</th>
-                            <th>Avg Fix Time</th>
+                            <th>Status Index</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
-                            <td>Ayawaso West Municipal</td>
-                            <td>84</td>
-                            <td class="good-stat">4 Days</td>
-                        </tr>
-                        <tr>
-                            <td>Accra Metropolitan (AMA)</td>
-                            <td>192</td>
-                            <td class="warn-stat">12 Days</td>
-                        </tr>
-                        <tr>
-                            <td>Ledzokuku Municipal</td>
-                            <td>56</td>
-                            <td class="bad-stat">21 Days</td>
+                            <td colspan="3" style="text-align:center; color:#64748b; padding: 24px; font-weight: 500;">
+                                ⏳ Syncing national database pipelines...
+                            </td>
                         </tr>
                     </tbody>
                 </table>
             </div>
         </section>
 
-        <!-- SCREEN 4: COMMUNITY GROUP CHAT FEED -->
         <section id="screen-community" class="app-screen hidden">
             <div class="chat-wrapper">
                 <div class="chat-header">
-                    <h4>💬 Public Neighborhood Wire</h4>
+                    <h4>💬 Public Neighborhood Chat</h4>
                     <p>Discuss local flooding, blockages, or organize cleanups.</p>
                 </div>
                 
-                <!-- Active Message Feed Container -->
                 <div id="chat-messages-container" class="chat-messages">
                     <div class="chat-bubble system">
-                        <p>Welcome to the Accra Civic wire. Keep messages brief and civil.</p>
+                        <p>Welcome to the CivicReporter chat channel. Keep messages brief and civil.</p>
                     </div>
                 </div>
 
-                <!-- Message Submittal Input Field Dock -->
                 <form id="chat-input-form" class="chat-input-bar">
                     <input type="text" id="chat-username" placeholder="Name" required style="width: 25%;">
                     <input type="text" id="chat-message-body" placeholder="Type a message..." required style="width: 60%;">
@@ -127,7 +103,6 @@
 
     </main>
 
-    <!-- SLIDE-UP REPORT FORM MODAL SHEET -->
     <div id="report-modal" class="modal hidden">
         <div class="modal-content">
             <div class="modal-header">
@@ -152,7 +127,6 @@
                     <option value="high">🔴 High (Immediate Flood Risk / Hazard)</option>
                 </select>
 
-                <!-- CAMERA VIEWPORT AND CAPTURE -->
                 <label>Evidence Capture</label>
                 <div class="camera-system-box">
                     <video id="camera-feed" autoplay playsinline class="hidden"></video>
@@ -175,7 +149,6 @@
         </div>
     </div>
 
-    <!-- BOTTOM APP NAVIGATION BAR -->
     <nav class="app-nav-bar">
         <button class="nav-item active" data-screen="screen-home">
             <span class="nav-icon">🏠</span>
@@ -191,11 +164,10 @@
         </button>
         <button class="nav-item" data-screen="screen-community">
             <span class="nav-icon">💬</span>
-            <span class="nav-label">Wire</span>
+            <span class="nav-label">Chat</span>
         </button>
     </nav>
 
-    <!-- Leaflet Map JS Engine -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="app.js"></script>
 </body>
