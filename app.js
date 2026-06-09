@@ -294,6 +294,8 @@ issueForm.addEventListener('submit', async (e) => {
     
     reportModal.classList.add('hidden');
     
+    showConfirmationToast(`🎉 Hazard logged to ${targetedDistrict}!`);
+    
     localStorage.setItem('activeCivicScreen', 'screen-map');
     executeScreenTransition('screen-map');
 
@@ -641,6 +643,18 @@ function renderHomeHotspots(reports) {
 
         hotspotContainer.appendChild(hotspotItem);
     });
+}
+
+function showConfirmationToast(message) {
+    const toast = document.getElementById('toast-notification');
+    if (!toast) return;
+
+    toast.textContent = message;
+    toast.classList.remove('hidden-toast');
+
+    setTimeout(() => {
+        toast.classList.add('hidden-toast');
+    }, 3500);
 }
 
 loadGisBoundaryData();
