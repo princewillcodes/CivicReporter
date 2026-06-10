@@ -215,28 +215,38 @@ function stopCameraHardware() {
 
 function detectSubMetroDistrict(coords) {
     if (!coords || !districtGeoData) {
-        return "Accra Metropolitan Assembly";
+        return "Unknown District Assembly";
     }
 
     try {
         const turfPoint = turf.point([coords[1], coords[0]]);
+        let bestMatch = null;
 
         for (let feature of districtGeoData.features) {
             const isInside = turf.booleanPointInPolygon(turfPoint, feature);
             
             if (isInside) {
-                const districtName = feature.properties.adm2_name || feature.properties.ADM2_EN;
-                const regionName = feature.properties.adm1_name || feature.properties.ADM1_EN;
+                const districtName = feature.properties.adm2_name || feature.properties.ADM2_EN || "Unknown Assembly";
+                const regionName = feature.properties.adm1_name || feature.properties.ADM1_EN || "Ghana";
                 
-                console.log(`Spatial Match Verified: Siting inside ${districtName}, ${regionName}`);
-                return `${districtName} Assembly (${regionName})`;
+                bestMatch = `${districtName} Assembly (${regionName})`;
+                
+                if (feature.geometry.type === 'Polygon') {
+                    break;
+                }
             }
         }
+
+        if (bestMatch) {
+            console.log(`Verified Spatial Lock: ${bestMatch}`);
+            return bestMatch;
+        }
+
     } catch (spatialError) {
         console.error("GIS spatial geometry intersection query failed:", spatialError);
     }
 
-    return "Accra Metropolitan Assembly (AMA)";
+    return "Border Area Corridor";
 }
 
 issueForm.addEventListener('submit', async (e) => {
