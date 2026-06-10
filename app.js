@@ -435,8 +435,14 @@ async function syncDashboardTelemetryMetrics() {
         const totalReportsCount = remoteData.reports.length;
         totalReportsStat.textContent = totalReportsCount;
         
-        const structuredRate = totalReportsCount > 0 ? Math.min(60 + (totalReportsCount * 2), 88) : 0;
-        resolutionRateStat.textContent = `${structuredRate}%`;
+        const uniqueDistricts = new Set();
+        remoteData.reports.forEach(report => {
+            if (report.district) {
+                uniqueDistricts.add(report.district);
+            }
+        });
+        
+        resolutionRateStat.textContent = uniqueDistricts.size;
 
         renderInsightsLeaderboard(remoteData.reports);
         renderHomeHotspots(remoteData.reports);
@@ -461,7 +467,7 @@ async function syncDashboardTelemetryMetrics() {
         
     } catch (error) {
         totalReportsStat.textContent = "0";
-        resolutionRateStat.textContent = "0%";
+        resolutionRateStat.textContent = "0";
     }
 }
 
