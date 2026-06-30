@@ -17,7 +17,7 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     bounds: ghanaBounds        
 }).addTo(map);
 
-const GOOGLE_SHEET_API_URL = "https://script.google.com/macros/s/AKfycbzKfjMQjoXFfb7GG8n5SJtIGw97RTqAltlliMPZsbSnAE5zgjq-bZqG2MsUdIxjjrKV/exec";
+const GOOGLE_SHEET_API_URL = "https://script.google.com/macros/s/AKfycbw6wbYr61L_wkwHGQ2BE9rvWlvyBnPew__6UMwaIOdiHzmPz0HZ36_Nctz9mrZxJscJ/exec";
 const IMGBB_API_KEY = "2515df640deee5f3371feb6768ee9d5f"; 
 
 let userCoords = null;          
