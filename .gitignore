@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+*.sqlite3
+.venv/
+venv/
+services/api/.env
+
+# Node / Next.js
+node_modules/
+.next/
+out/
+apps/web/.env.local
+apps/web/.env.*.local
+apps/web/next-env.d.ts
+
+# Local environment files
+.env
+.env.*
+!.env.example
+
+# Editors and operating systems
+.DS_Store
+.idea/
+.vscode/

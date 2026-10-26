@@ -1,0 +1,21 @@
+services:
+  db:
+    image: postgis/postgis:16-3.4
+    container_name: civicreporter-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-civicreporter}
+      POSTGRES_USER: ${POSTGRES_USER:-civicreporter}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-civicreporter-local}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - civicreporter-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-civicreporter} -d ${POSTGRES_DB:-civicreporter}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  civicreporter-postgres-data:
